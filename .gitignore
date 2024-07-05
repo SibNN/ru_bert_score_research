@@ -1,0 +1,9 @@
+/data/curation_corpus_ru/train-00000-of-00001-1d043be9cad23f73_cleaned.csv
+/data/gazeta/gazeta_test.csv
+/data/gazeta/gazeta_train.csv
+/data/gazeta/gazeta_val.csv
+/data/russian_xlsum/russian_test.csv
+/data/russian_xlsum/russian_train.csv
+/data/russian_xlsum/russian_val.csv
+/data/ru_dial_sum/head3111.csv
+/data/ru_dial_sum/tail300.csv

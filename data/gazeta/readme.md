@@ -1,0 +1,1 @@
+Link to download the data: https://huggingface.co/datasets/IlyaGusev/gazeta/tree/main

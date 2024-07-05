@@ -1,0 +1,1 @@
+Link to download the data: https://huggingface.co/datasets/d0rj/curation-corpus-ru/blob/main/data/train-00000-of-00001-1d043be9cad23f73.parquet
