@@ -1,0 +1,1 @@
+Link to download the data: https://huggingface.co/datasets/csebuetnlp/xlsum/blob/main/data/russian_XLSum_v2.0.tar.bz2

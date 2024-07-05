@@ -1,0 +1,1 @@
+Link to download the data: https://huggingface.co/datasets/dantepalacio/ru_dial_sum/tree/main

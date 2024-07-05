@@ -1,0 +1,1 @@
+Link to download the data: https://github.com/iis-research-team/summarization-dataset
