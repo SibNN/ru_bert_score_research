@@ -7,7 +7,7 @@ import pandas as pd
 
 
 def convert_gazeta(dir_path: str) -> None:
-    """ Method to convert .jsonl data to .csv data.
+    """ Method to convert .jsonl raw_data to .csv raw_data.
     Suitable for gazeta, russian_xlsum
     """
     for fpath in Path(dir_path).iterdir():
