@@ -9,8 +9,8 @@ Download them to the '/data' dir.
 | **№** |                 **Dataset**                |                      **File**                     | **N samples** | **N unique samples** | **N chars** | **Gigachat** | **YandexGPT** |
 |:-----:|:------------------------------------------:|:-------------------------------------------------:|:-------------:|:--------------------:|:-----------:|:------------:|:-------------:|
 |   1   | telegram-financial-sentiment-summarization | telegram_data_cleaned.csv                         | 18 107        | 18 107               | 10 407 423  |              |               |
-|   2   | ru_simple_sent_eval                        | dev_sents.csv                                     | 3 406         | 1 000                | 470 025     |              |               |
-|   3   | ru_simple_sent_eval                        | public_test_sents.csv                             | 3 398         | 1 000                | 461 214     |              |               |
+|   2   | ru_simple_sent_eval                        | dev_sents.csv                                     | 3 406         | 1 000                | 470 025     |      +       |               |
+|   3   | ru_simple_sent_eval                        | public_test_sents.csv                             | 3 398         | 1 000                | 461 214     |      +       |               |
 |   4   | matreshka                                  | train-00000-of-00001-287def2e1da553e7.csv         | 6 655         | 6 646                | 2 167 490   |              |               |
 |   5   | gazeta                                     | gazeta_test.csv                                   | 6 793         | 6 793                | 30 202 257  |              |               |
 |   6   | gazeta                                     | gazeta_val.csv                                    | 6 369         | 6 369                | 27 758 680  |              |               |
