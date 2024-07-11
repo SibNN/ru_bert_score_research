@@ -74,3 +74,22 @@ def convert_tg_fin_sentiment_analysis(fpath: str, rm_initial_file: bool = True) 
 
     if rm_initial_file:
         os.remove(fpath)
+
+
+def convert_yandex_jobs(fpath: str) -> None:
+    new_fpath = fpath.replace('.csv', '_raw_vacancies.csv')
+
+    with open(fpath, 'r') as fin, open(new_fpath, 'w') as fout:
+        reader = csv.DictReader(fin)
+        writer = csv.DictWriter(fout, fieldnames=['input', 'output'])
+        writer.writeheader()
+        for row in reader:
+            desc = row['Description']
+            req = row['Requirements']
+            tasks = row['Tasks']
+            pluses = row['Pluses']
+
+            writer.writerow({
+                'input': f'{desc}\n{req}\n{tasks}\n{pluses}',
+                'output': row['Header']
+            })
