@@ -95,8 +95,8 @@ class YandexGPTGenerator:
 
 
 if __name__ == '__main__':
-    gen = YandexGPTGenerator('reviews_russian')
-    gen.run(['train.csv'])
+    gen = YandexGPTGenerator('ru_simple_sent_eval')
+    gen.run()
 
 
 
