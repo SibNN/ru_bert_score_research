@@ -20,9 +20,9 @@ Download them to the '/data' dir.
 |   10  | russian_xlsum                              | russian_train.csv                                 | 62 243        |        62 211        | 252 415 678 |              |               |
 |   11  | russe_detox_2022                           | dev.csv                                           | 800           |         800          |   50 907  |              |               |
 |   12  | russe_detox_2022                           | train.csv                                         | 6 948         |        6 948         |   444 692 |              |               |
-|   13  | dialogsum_ru                               | test-00000-of-00001-2f13615b955ea947.csv          | 1 500         |         499          |  1 135 638 |      +       |               |
-|   14  | dialogsum_ru                               | train-00000-of-00001-bcc43b46acda4001.csv         | 12 460        |        11 598        |  9 188 691 |              |               |
-|   15  | dialogsum_ru                               | validation-00000-of-00001-7e263d81db1c7a12.csv    | 500           |         498          |   363 179 |              |               |
+|   13  | dialogsum_ru                               | test-00000-of-00001-2f13615b955ea947.csv          | 1 500         |         499          |  1 135 638 |      +       |       +       |
+|   14  | dialogsum_ru                               | train-00000-of-00001-bcc43b46acda4001.csv         | 12 460        |        11 598        |  9 188 691 |              |       +       |
+|   15  | dialogsum_ru                               | validation-00000-of-00001-7e263d81db1c7a12.csv    | 500           |         498          |   363 179 |              |       +       |
 |   16  | ru_dial_sum                                | head3111.csv                                      | 3 111         |        3 111         | 12 948 611 |              |               |
 |   17  | ru_dial_sum                                | tail300.csv                                       | 300           |         300          |  1 095 179 |              |               |
 |   18  | reviews_russian                            | train.csv                                         | 95            |          93          |   131 248 |      +       |       +       |
