@@ -27,7 +27,7 @@ Download them to the '/data' dir.
 |   17  | ru_dial_sum                                | tail300.csv                                       | 300           |         300          |  1 095 179 |              |               |
 |   18  | reviews_russian                            | train.csv                                         | 95            |          93          |   131 248 |      +       |       +       |
 |   19  | reviews_russian                            | test.csv                                          | 15            |          15          |   28 248  |      +       |       +       |
-|   20  | yandex_jobs                                | vacancies.csv                                     | 625           |         528          |   578 066 |              |               |
+|   20  | yandex_jobs                                | vacancies.csv                                     | 625           |         528          |   578 066 |      +       |       +       |
 |   21  | ru-ego-literature                          | ru-ego-literature_cleaned.csv                     | 532           |         532          | 10 248 279 |              |               |
 |   22  | samsum_ru                                  | test-00000-of-00001-e5495f81e41a1924.csv          | 819           |         819          |   428 689 |              |               |
 |   23  | samsum_ru                                  | train-00000-of-00001-76cc3fe8132d8f4b.csv         | 14 731        |        14 248        |  7 569 675 |              |               |
