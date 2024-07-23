@@ -33,4 +33,4 @@ Download them to the '/data' dir.
 |   23  | samsum_ru                                  | train-00000-of-00001-76cc3fe8132d8f4b.csv         | 14 731        |        14 248        |  7 569 675 |              |               |
 |   24  | samsum_ru                                  | validation-00000-of-00001-111fbc2081be60b7.csv    | 818           |         818          |   409 594 |              |               |
 |   25  | curation_corpus_ru                         | train-00000-of-00001-1d043be9cad23f73_cleaned.csv | 30 454        |        30 454        | 112 924 220 |              |               |
-| 26 | science_summarization_dataset | | | | |      +       |
+| 26 | science_summarization_dataset | | | | |      +       | + |
