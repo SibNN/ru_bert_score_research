@@ -1,0 +1,6 @@
+bert-score==0.3.13
+evaluate==0.4.2
+sentencepiece==0.2.0
+torch==2.3.1
+transformers==4.42.4
+sacremoses==0.1.1
