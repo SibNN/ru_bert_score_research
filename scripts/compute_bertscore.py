@@ -1,5 +1,6 @@
 import os
 import gc
+import sys
 
 import torch
 import pandas as pd
@@ -24,20 +25,21 @@ def get_n_layers(model_name: str) -> int:
 
 def compute_bertscore(df: pd.DataFrame, cur_path: str) -> None:
     model_names = ['bert-base-multilingual-cased',
-                       'xlm-mlm-100-1280', 
-                       'distilbert-base-multilingual-cased', 
-                       'xlm-roberta-base', 'xlm-roberta-large', 
-                       'facebook/mbart-large-cc25', 
-                       'facebook/mbart-large-50', 
-                       'facebook/mbart-large-50-many-to-many-mmt', 
-                       'google/mt5-small', 
-                       'google/mt5-base', 
-                       'google/mt5-large', 
-                       'google/mt5-xl', 
-                       'google/byt5-small', 
-                       'google/byt5-base', 
-                       'google/byt5-large', 
-                       'microsoft/mdeberta-v3-base']
+                   'xlm-mlm-100-1280', 
+                   'distilbert-base-multilingual-cased', 
+                   'xlm-roberta-base', 
+                   'xlm-roberta-large', 
+                   'facebook/mbart-large-cc25', 
+                   'facebook/mbart-large-50', 
+                   'facebook/mbart-large-50-many-to-many-mmt', 
+                   'google/mt5-small', 
+                   'google/mt5-base', 
+                   'google/mt5-large', 
+                   'google/mt5-xl', 
+                   'google/byt5-small', 
+                   'google/byt5-base', 
+                   'google/byt5-large', 
+                   'microsoft/mdeberta-v3-base']
     for model in model_names:
         print(f'MODEL: {model}')
         num_layers = get_n_layers(model)
@@ -64,24 +66,35 @@ def compute_bertscore(df: pd.DataFrame, cur_path: str) -> None:
                                                        num_layers=layer)
                     bertscores.append(bert_score['f1'][0])
             df[f"{model}_layer_{layer}"] = bertscores
-            df.to_csv(cur_path, index=False)
+            df.to_csv(cur_path, index=False) # save dataframe after each layer to avoid data loss
 
+            
+if len(sys.argv) == 2:
+    data_folder = sys.argv[1]
+else:
+    if len(sys.argv) < 2:
+        print("Ошибка. Слишком мало параметров.")
+        sys.exit(1)
+
+    if len(sys.argv) > 2:
+        print("Ошибка. Слишком много параметров.")
+        sys.exit(1)
 
 file_path = os.path.abspath(__file__)
 
 PROJECT_PATH = os.path.dirname(os.path.dirname(file_path))
-GIGACHAT_PATH = os.path.join(PROJECT_PATH, 'gigachat')
+DATA_PATH = os.path.join(PROJECT_PATH, data_folder)
 BERTSCORE_PATH = os.path.join(PROJECT_PATH, 'computed_bertscore')
 
 bertscore = load("bertscore")
 
-for folder in os.listdir(GIGACHAT_PATH):
-    data_path = GIGACHAT_PATH+'/'+folder
-    if os.path.isdir(data_path):
-        for csv_file in os.listdir(data_path):
+for folder in os.listdir(DATA_PATH):
+    dataset_path = DATA_PATH+'/'+folder
+    if os.path.isdir(dataset_path):
+        for csv_file in os.listdir(dataset_path):
             if csv_file.endswith(".csv"):
                 print(f'------------------FILE: {csv_file}------------------')
-                os.makedirs(BERTSCORE_PATH+'/'+folder, exist_ok=True)
-                gigachat_df = pd.read_csv(data_path+'/'+csv_file)
-                bertscore_dict = compute_bertscore(gigachat_df, BERTSCORE_PATH+'/'+folder+'/'+csv_file)
-                
+                current_path = BERTSCORE_PATH+'/'+data_folder+'/'+folder
+                os.makedirs(current_path, exist_ok=True)
+                data_df = pd.read_csv(current_path+'/'+csv_file)
+                compute_bertscore(data_df, current_path+'/'+csv_file)
