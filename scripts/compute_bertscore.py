@@ -23,23 +23,30 @@ def get_n_layers(model_name: str) -> int:
         return config.n_layers
 
 
-def compute_bertscore(df: pd.DataFrame, cur_path: str) -> None:
-    model_names = ['bert-base-multilingual-cased',
-                   'xlm-mlm-100-1280', 
-                   'distilbert-base-multilingual-cased', 
-                   'xlm-roberta-base', 
-                   'xlm-roberta-large', 
-                   'facebook/mbart-large-cc25', 
-                   'facebook/mbart-large-50', 
-                   'facebook/mbart-large-50-many-to-many-mmt', 
-                   'google/mt5-small', 
-                   'google/mt5-base', 
-                   'google/mt5-large', 
-                   'google/mt5-xl', 
-                   'google/byt5-small', 
-                   'google/byt5-base', 
-                   'google/byt5-large', 
-                   'microsoft/mdeberta-v3-base']
+def compute_bertscore(df: pd.DataFrame, cur_path: str, lang_type: str) -> None:
+    if lang_type == 'multilingual':
+        model_names = ['bert-base-multilingual-cased',
+                       'xlm-mlm-100-1280', 
+                       'distilbert-base-multilingual-cased', 
+                       'xlm-roberta-base', 
+                       'xlm-roberta-large', 
+                       'facebook/mbart-large-cc25', 
+                       'facebook/mbart-large-50', 
+                       'facebook/mbart-large-50-many-to-many-mmt', 
+                       'google/mt5-small', 
+                       'google/mt5-base', 
+                       'google/mt5-large', 
+                       'google/mt5-xl', 
+                       'google/byt5-small', 
+                       'google/byt5-base', 
+                       'google/byt5-large', 
+                       'microsoft/mdeberta-v3-base']
+    elif lang_type == 'ru':
+        model_names = ['DeepPavlov/rubert-base-cased',
+                       'ai-forever/ruBert-base',
+                       'ai-forever/ruBert-large',
+                       'ai-forever/ruRoberta-large',
+                       'ai-forever/ru-en-RoSBERTa']
     for model in model_names:
         print(f'MODEL: {model}')
         num_layers = get_n_layers(model)
@@ -69,23 +76,22 @@ def compute_bertscore(df: pd.DataFrame, cur_path: str) -> None:
             df.to_csv(cur_path, index=False) # save dataframe after each layer to avoid data loss
 
             
-if len(sys.argv) == 2:
-    data_folder = sys.argv[1]
+if len(sys.argv) == 3:
+    data_folder = sys.argv[1] #'yandexgpt' or 'gigachat'
+    model_lang = sys.argv[2] #'multilingual' or 'ru'
 else:
-    if len(sys.argv) < 2:
-        print("Ошибка. Слишком мало параметров.")
-        sys.exit(1)
-
-    if len(sys.argv) > 2:
-        print("Ошибка. Слишком много параметров.")
+    if len(sys.argv) != 3:
+        print("Ошибка. Вы должны ввести название папки с данными ('yandexgpt' или 'gigachat') и языковой тип моделей ('multilingual' или 'ru')")
         sys.exit(1)
 
 file_path = os.path.abspath(__file__)
 
 PROJECT_PATH = os.path.dirname(os.path.dirname(file_path))
 DATA_PATH = os.path.join(PROJECT_PATH, data_folder)
-BERTSCORE_PATH = os.path.join(PROJECT_PATH, 'computed_bertscore')
-
+if model_lang == 'multilingual':
+    BERTSCORE_PATH = '/usr/src/app/Dari/bertscore/computed_bertscore'#os.path.join(PROJECT_PATH, 'computed_bertscore')
+elif model_lang == 'ru':
+    BERTSCORE_PATH = os.path.join(PROJECT_PATH, 'computed_ru_bertscore')
 bertscore = load("bertscore")
 
 for folder in os.listdir(DATA_PATH):
@@ -96,5 +102,5 @@ for folder in os.listdir(DATA_PATH):
                 print(f'------------------FILE: {csv_file}------------------')
                 current_path = BERTSCORE_PATH+'/'+data_folder+'/'+folder
                 os.makedirs(current_path, exist_ok=True)
-                data_df = pd.read_csv(current_path+'/'+csv_file)
-                compute_bertscore(data_df, current_path+'/'+csv_file)
+                data_df = pd.read_csv(dataset_path+'/'+csv_file)
+                compute_bertscore(data_df, current_path+'/'+csv_file, model_lang)
