@@ -5,7 +5,7 @@ import sys
 import torch
 import pandas as pd
 from tqdm import tqdm
-from transformers import AutoConfig
+from transformers import AutoConfig, AutoTokenizer
 from evaluate import load
 
 
@@ -21,6 +21,13 @@ def get_n_layers(model_name: str) -> int:
         return config.num_hidden_layers
     elif hasattr(config, 'n_layers'):
         return config.n_layers
+
+
+def truncate_text(text: str, tokenizer: AutoTokenizer, max_length: int = 512) -> (str, bool):
+    tokens = tokenizer(text, max_length=max_length, truncation=True, return_overflowing_tokens=True)
+    truncated_text = tokenizer.decode(tokens['input_ids'][0], skip_special_tokens=True)
+    truncated = len(tokens['input_ids'])!=1
+    return truncated_text, truncated
 
 
 def compute_bertscore(df: pd.DataFrame, cur_path: str, lang_type: str) -> None:
@@ -47,14 +54,43 @@ def compute_bertscore(df: pd.DataFrame, cur_path: str, lang_type: str) -> None:
                        'ai-forever/ruBert-large',
                        'ai-forever/ruRoberta-large',
                        'ai-forever/ru-en-RoSBERTa']
+        
     for model in model_names:
         print(f'MODEL: {model}')
         num_layers = get_n_layers(model)
+        tokenizer = AutoTokenizer.from_pretrained(model)
+        
+        pred_truncated_flags = []
+        ref_truncated_flags = []
+        truncated_pred_texts = []
+        truncated_ref_texts = []
+
+        for index, row in df.iterrows():
+            pred_text = row['pred']
+            ref_text = row['output']
+            
+            if pd.isnull(ref_text) or pd.isnull(pred_text):
+                pred_truncated_flags.append(False)
+                ref_truncated_flags.append(False)
+                truncated_pred_texts.append(pred_text)
+                truncated_ref_texts.append(ref_text)
+            else:
+                truncated_pred_text, pred_truncated = truncate_text(pred_text, tokenizer)
+                truncated_ref_text, ref_truncated = truncate_text(ref_text, tokenizer)
+                
+                pred_truncated_flags.append(pred_truncated)
+                ref_truncated_flags.append(ref_truncated)
+                truncated_pred_texts.append(truncated_pred_text)
+                truncated_ref_texts.append(truncated_ref_text)
+        
+        df[f'pred_truncated_{model}'] = pred_truncated_flags
+        df[f'ref_truncated_{model}'] = ref_truncated_flags
+        
         for layer in tqdm(range(num_layers)):
             bertscores = []
             for index, row in df.iterrows():
-                pred_text = row['pred']
-                ref_text = row['output']
+                pred_text = truncated_pred_texts[index]
+                ref_text = truncated_ref_texts[index]
                 if pd.isnull(ref_text) or pd.isnull(pred_text):
                     bertscores.append(0) 
                 else:
@@ -89,7 +125,7 @@ file_path = os.path.abspath(__file__)
 PROJECT_PATH = os.path.dirname(os.path.dirname(file_path))
 DATA_PATH = os.path.join(PROJECT_PATH, data_folder)
 if model_lang == 'multilingual':
-    BERTSCORE_PATH = '/usr/src/app/Dari/bertscore/computed_bertscore'#os.path.join(PROJECT_PATH, 'computed_bertscore')
+    BERTSCORE_PATH = os.path.join(PROJECT_PATH, 'computed_bertscore')
 elif model_lang == 'ru':
     BERTSCORE_PATH = os.path.join(PROJECT_PATH, 'computed_ru_bertscore')
 bertscore = load("bertscore")
