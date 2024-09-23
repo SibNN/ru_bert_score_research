@@ -6,8 +6,7 @@ import numpy as np
 import torch
 import pandas as pd
 from tqdm import tqdm
-from transformers import AutoConfig
-from transformers import LongformerForMaskedLM, LongformerTokenizerFast, T5Tokenizer, T5ForConditionalGeneration
+from transformers import AutoConfig, AutoTokenizer, AutoModel, T5Tokenizer, T5ForConditionalGeneration
 
 try:
     from bertscore import calculate_token_embeddings, bert_score
@@ -25,9 +24,9 @@ def cleanup() -> None:
 def get_n_layers_and_architectures(model_name: str) -> int:
     config = AutoConfig.from_pretrained(model_name)
     
-    if hasattr(config, 'num_hidden_layers') and (config, 'architectures'):
+    if hasattr(config, 'num_hidden_layers') and hasattr(config, 'architectures'):
         return config.num_hidden_layers, config.architectures[0]
-    elif hasattr(config, 'n_layers') and (config, 'architectures'):
+    elif hasattr(config, 'n_layers') and hasattr(config, 'architectures'):
         return config.n_layers, config.architectures[0]
 
 
@@ -42,13 +41,13 @@ def compute_bertscore(df: pd.DataFrame, cur_path: str) -> None:
     df['output'].fillna('', inplace=True)
     df['pred'].fillna('', inplace=True)
     for model_name in model_names:
-        if 'longformer' in model_name:
-            tokenizer = LongformerTokenizerFast.from_pretrained(model_name)
-            model = LongformerForMaskedLM.from_pretrained(model_name) 
-        elif 'T5' in model_name:
+        if 'ruT5' in model_name:
             tokenizer = T5Tokenizer.from_pretrained(model_name)
-            model = T5ForConditionalGeneration.from_pretrained(model_name)
-            
+            model = T5ForConditionalGeneration.from_pretrained(model_name) 
+        else:
+            tokenizer = AutoTokenizer.from_pretrained(model_name)
+            model = AutoModel.from_pretrained(model_name) 
+        
         print(f'MODEL: {model_name}')
         num_layers, architectures = get_n_layers_and_architectures(model_name)
 
@@ -86,7 +85,7 @@ file_path = os.path.abspath(__file__)
 PROJECT_PATH = os.path.dirname(os.path.dirname(file_path))
 DATA_PATH = os.path.join(PROJECT_PATH, data_folder)
 
-BERTSCORE_PATH = '/usr/src/app/Dari/bertscore/computed_ru_bertscore'#os.path.join(PROJECT_PATH, 'computed_ru_bertscore')
+BERTSCORE_PATH = os.path.join(PROJECT_PATH, 'computed_ru_bertscore')
 
 for folder in os.listdir(DATA_PATH):   
     dataset_path = DATA_PATH+'/'+folder
