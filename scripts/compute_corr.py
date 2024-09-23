@@ -11,15 +11,12 @@ def clean_text(text):
     return text
 
 
-if len(sys.argv) == 2:
-    data_folder = sys.argv[1]
+if len(sys.argv) == 3:
+    data_folder = sys.argv[1] #'yandexgpt' or 'gigachat'
+    model_lang = sys.argv[2] #'multilingual' or 'ru'
 else:
-    if len(sys.argv) < 2:
-        print("Ошибка. Слишком мало параметров.")
-        sys.exit(1)
-
-    if len(sys.argv) > 2:
-        print("Ошибка. Слишком много параметров.")
+    if len(sys.argv) != 3:
+        print("Ошибка. Вы должны ввести название папки с данными ('yandexgpt' или 'gigachat') и языковой тип моделей ('multilingual' или 'ru')")
         sys.exit(1)
 
 if data_folder == 'yandexgpt':
@@ -30,9 +27,13 @@ elif data_folder == 'gigachat':
 file_path = os.path.abspath(__file__)
 
 PROJECT_PATH = os.path.dirname(os.path.dirname(file_path))
-BERTSCORE_PATH = os.path.join(PROJECT_PATH, 'computed_bertscore')
+if model_lang == 'multilingual':
+    BERTSCORE_PATH = os.path.join(PROJECT_PATH, 'computed_bertscore')
+    CORR_PATH = os.path.join(PROJECT_PATH, 'correlations')
+elif model_lang == 'ru':
+    BERTSCORE_PATH = os.path.join(PROJECT_PATH, 'computed_ru_bertscore')
+    CORR_PATH = os.path.join(PROJECT_PATH, 'ru_correlations')
 SCORE_PATH = os.path.join(PROJECT_PATH, model_score_folder)
-CORR_PATH = os.path.join(PROJECT_PATH, 'correlations')
 
 for folder in os.listdir(BERTSCORE_PATH+'/'+data_folder):
     current_path = BERTSCORE_PATH+'/'+data_folder+'/'+folder
@@ -51,11 +52,8 @@ for folder in os.listdir(BERTSCORE_PATH+'/'+data_folder):
                     else:
                         input_column = 'input'
 
-                    if csv_file == 'preds.csv' and data_folder == 'yandexgpt':
-                        bertscore_columns = list(bertscore_df.keys())[4:] #columns dir_name, input, output, pred
-                    else:
-                        bertscore_columns = list(bertscore_df.keys())[3:]
-                    
+                    bertscore_columns = [column for column in list(bertscore_df.keys()) if 'layer' in column]
+
                     bertscore_df['average_score'] = bertscore_df[bertscore_columns].mean(axis=1)
 
                     best_outputs = bertscore_df.loc[bertscore_df.groupby(input_column)['average_score'].idxmax()] #save only those ground truth outputs that have the highest average score according to bertscore
