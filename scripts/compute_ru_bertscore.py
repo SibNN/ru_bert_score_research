@@ -56,7 +56,7 @@ def compute_bertscore(df: pd.DataFrame, cur_path: str) -> None:
             predictions = list(df['pred'])
             try:
                 if architectures == 'LongformerForMaskedLM':
-                    bertscores = bert_score(references, predictions, (tokenizer, model), 8, True) # use_global_attention = True if model - longformer
+                    bertscores = bert_score(references, predictions, (tokenizer, model), 8, layer, True) # use_global_attention = True if model - longformer
                 elif architectures == 'T5ForConditionalGeneration':
                     bertscores = bert_score(references, predictions, (tokenizer, model.encoder), 8, layer)
                 else:
@@ -64,7 +64,7 @@ def compute_bertscore(df: pd.DataFrame, cur_path: str) -> None:
             except RuntimeError:  # usually, it is out-of-memory
                 cleanup()
                 if architectures == 'LongformerForMaskedLM':
-                    bertscores = bert_score(references, predictions, (tokenizer, model), 8, True) # use_global_attention = True if model - longformer
+                    bertscores = bert_score(references, predictions, (tokenizer, model), 8, layer, True) # use_global_attention = True if model - longformer
                 elif architectures == 'T5ForConditionalGeneration':
                     bertscores = bert_score(references, predictions, (tokenizer, model.encoder), 8, layer)
                 else:

@@ -1,20 +1,23 @@
+import torch
+import numpy as np
 import math
 from typing import List, Tuple, Optional, Union
-
-import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
-import torch
 from transformers import LongformerForMaskedLM, LongformerTokenizerFast
-
 
 MAX_TEXT_LEN: int = 16_000
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def calculate_token_embeddings(texts: List[str], embedder: Tuple[LongformerTokenizerFast, LongformerForMaskedLM],
-                               batch_size: Optional[int] = None, hidden_state_idx: int = -1, use_global_attention: bool = False) -> List[Union[np.ndarray, None]]:
+def calculate_token_embeddings(texts: List[str], embedder: Tuple[torch.nn.Module, torch.nn.Module],
+                               batch_size: Optional[int] = None, hidden_state_idx: int = -1, 
+                               use_global_attention: bool = False) -> List[Union[np.ndarray, None]]:
     input_ids = []
     attention_mask = []
     useful_token_indices = []
+
+    embedder[1].to(device)
+
     if batch_size is None:
         tokenized = embedder[0].batch_encode_plus(texts, max_length=MAX_TEXT_LEN, return_length=True,
                                                   truncation=True, padding=True, return_special_tokens_mask=True,
@@ -62,23 +65,28 @@ def calculate_token_embeddings(texts: List[str], embedder: Tuple[LongformerToken
     text_idx = 0
     embeddings = []
     for batched_input_ids, batched_attention_mask in zip(input_ids, attention_mask):
+        batched_input_ids = batched_input_ids.to(device)
+        batched_attention_mask = batched_attention_mask.to(device)
+
         global_attention_mask = None
         if use_global_attention:
             global_attention_mask = [
-                [1 if token_id == tokenizer.cls_token_id else 0 for token_id in cur_input_ids]
+                [1 if token_id == embedder[0].cls_token_id else 0 for token_id in cur_input_ids]
                 for cur_input_ids in batched_input_ids
             ]
+            global_attention_mask = torch.tensor(global_attention_mask).to(device)
+        
         with torch.no_grad():
             if use_global_attention:
                 outputs = embedder[1](input_ids=batched_input_ids, attention_mask=batched_attention_mask,
-                                global_attention_mask=torch.tensor(global_attention_mask),
-                                return_dict=True, output_hidden_states=True)
+                                      global_attention_mask=global_attention_mask,
+                                      return_dict=True, output_hidden_states=True)
             else:
                 outputs = embedder[1](input_ids=batched_input_ids, attention_mask=batched_attention_mask,
-                                return_dict=True, output_hidden_states=True)
-        del global_attention_mask
-        cur_hidden_state = outputs.hidden_states[hidden_state_idx].numpy()
-        del outputs
+                                      return_dict=True, output_hidden_states=True)
+        
+        cur_hidden_state = outputs.hidden_states[hidden_state_idx].cpu().numpy()
+        
         for idx in range(cur_hidden_state.shape[0]):
             if len(useful_token_indices[text_idx]) > 0:
                 emb_matrix = cur_hidden_state[idx, useful_token_indices[text_idx], :]
@@ -86,42 +94,27 @@ def calculate_token_embeddings(texts: List[str], embedder: Tuple[LongformerToken
             else:
                 embeddings.append(None)
             text_idx += 1
-        del cur_hidden_state
-    del input_ids, attention_mask, useful_token_indices
-    return embeddings
 
+    return embeddings
 
 def bert_score(references: List[str], predictions: List[str],
                evaluator: Tuple[LongformerTokenizerFast, LongformerForMaskedLM],
-               batch_size: Optional[int] = None, hidden_state_idx: int = -1, use_global_attention: bool = False) -> List[float]:
+               batch_size: Optional[int] = None, hidden_state_idx: int = -1, 
+               use_global_attention: bool = False) -> List[float]:
     if len(references) != len(predictions):
-        err_msg = f'The reference texts do not correspond to the predicted texts! ' \
-                  f'{len(references)} != {len(predictions)}'
-        raise ValueError(err_msg)
+        raise ValueError(f'The reference texts do not correspond to the predicted texts! {len(references)} != {len(predictions)}')
+
     embeddings_of_references = calculate_token_embeddings(references, evaluator, batch_size, hidden_state_idx, use_global_attention)
     embeddings_of_predictions = calculate_token_embeddings(predictions, evaluator, batch_size, hidden_state_idx, use_global_attention)
+    
     scores = []
     for ref, pred in zip(embeddings_of_references, embeddings_of_predictions):
-        if (ref is None) or (pred is None):
-            if (ref is None) and (pred is None):
-                scores.append(1.0)
-            else:
-                scores.append(0.0)
+        if ref is None or pred is None:
+            scores.append(1.0 if ref is None and pred is None else 0.0)
         else:
             similarity_matrix = cosine_similarity(ref, pred)
-            recall = 0.0
-            for ref_idx in range(ref.shape[0]):
-                pred_idx = np.argmax(similarity_matrix[ref_idx, :])
-                recall += float(similarity_matrix[ref_idx, pred_idx])
-            recall /= float(ref.shape[0])
-            precision = 0.0
-            for pred_idx in range(pred.shape[0]):
-                ref_idx = np.argmax(similarity_matrix[:, pred_idx])
-                precision += float(similarity_matrix[ref_idx, pred_idx])
-            precision /= float(pred.shape[0])
-            if (precision > 0.0) and (recall > 0.0):
-                f1 = 2 * precision * recall / (precision + recall)
-            else:
-                f1 = 0.0
+            recall = np.mean([similarity_matrix[ref_idx, np.argmax(similarity_matrix[ref_idx, :])] for ref_idx in range(ref.shape[0])])
+            precision = np.mean([similarity_matrix[np.argmax(similarity_matrix[:, pred_idx]), pred_idx] for pred_idx in range(pred.shape[0])])
+            f1 = 2 * precision * recall / (precision + recall) if precision > 0 and recall > 0 else 0.0
             scores.append(f1)
     return scores
