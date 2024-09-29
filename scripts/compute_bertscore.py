@@ -53,7 +53,10 @@ def compute_bertscore(df: pd.DataFrame, cur_path: str, lang_type: str) -> None:
                        'ai-forever/ruBert-base',
                        'ai-forever/ruBert-large',
                        'ai-forever/ruRoberta-large',
-                       'ai-forever/ru-en-RoSBERTa']
+                       'ai-forever/ru-en-RoSBERTa',
+                       'bond005/rubert-entity-embedder',
+                       'ai-forever/ruSciBERT',
+                       'cointegrated/rubert-tiny2']
         
     for model in model_names:
         print(f'MODEL: {model}')
