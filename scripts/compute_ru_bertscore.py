@@ -76,7 +76,7 @@ def compute_bertscore(df: pd.DataFrame, cur_path: str) -> None:
 if len(sys.argv) == 2:
     data_folder = sys.argv[1] #'yandexgpt' or 'gigachat'
 else:
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 2:
         print("Ошибка. Вы должны ввести название папки с данными ('yandexgpt' или 'gigachat')")
         sys.exit(1)
 
