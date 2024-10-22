@@ -33,11 +33,8 @@ def calculate_token_embeddings(texts: List[str], embedder: Tuple[torch.nn.Module
     attention_mask = []
     useful_token_indices = []
 
-    embedder[1].to(device)
-
     if batch_size is not None:
-        if batch_size < 1:
-            raise ValueError(f'The minibatch size = {batch_size} is wrong!')
+        assert batch_size > 0, f'The minibatch size = {batch_size} is wrong!'
         n_batches = math.ceil(len(texts) / batch_size)
         for idx in range(n_batches):
             batch_start = idx * batch_size
@@ -51,7 +48,8 @@ def calculate_token_embeddings(texts: List[str], embedder: Tuple[torch.nn.Module
                                                   truncation=True, padding=True, return_special_tokens_mask=True,
                                                   return_tensors='pt')
         process_tokenized_data(tokenized, input_ids, attention_mask, useful_token_indices)
-   
+        
+    embedder[1].to(device)
     text_idx = 0
     embeddings = []
     for batched_input_ids, batched_attention_mask in zip(input_ids, attention_mask):

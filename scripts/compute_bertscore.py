@@ -61,15 +61,15 @@ def manual_bertscore(df: pd.DataFrame, model_name: str, cur_path: str) -> None:
     num_layers, architectures = get_n_layers_and_architectures(model_name)
 
     for layer in tqdm(range(num_layers)):
-            references = list(df['output'])
-            predictions = list(df['pred'])
-            try:
-                bertscores = call_bertscore(architectures, references, predictions, tokenizer, model, layer)
-            except RuntimeError:  # usually, it is out-of-memory
-                cleanup()
-                bertscores = call_bertscore(architectures, references, predictions, tokenizer, model, layer)
-            df[f"{model_name}_layer_{layer}"] = bertscores
-            df.to_csv(cur_path, index=False) # save dataframe after each layer to avoid data loss
+        references = list(df['output'])
+        predictions = list(df['pred'])
+        try:
+            bertscores = call_bertscore(architectures, references, predictions, tokenizer, model, layer)
+        except RuntimeError:  # usually, it is out-of-memory
+            cleanup()
+            bertscores = call_bertscore(architectures, references, predictions, tokenizer, model, layer)
+        df[f"{model_name}_layer_{layer}"] = bertscores
+        df.to_csv(cur_path, index=False) # save dataframe after each layer to avoid data loss
 
 
 def auto_bertscore(df: pd.DataFrame, model_name: str, cur_path: str) -> None:   
@@ -179,9 +179,8 @@ if __name__ == '__main__':
         data_folder = sys.argv[1] #'yandexgpt' or 'gigachat'
         model_lang = sys.argv[2] #'multilingual' or 'ru'
     else:
-        if len(sys.argv) != 3:
-            print("Ошибка. Вы должны ввести название папки с данными ('yandexgpt' или 'gigachat') и языковой тип моделей ('multilingual' или 'ru')")
-            sys.exit(1)
+        print("Ошибка. Вы должны ввести название папки с данными ('yandexgpt' или 'gigachat') и языковой тип моделей ('multilingual' или 'ru')")
+        sys.exit(1)
 
     file_path = os.path.abspath(__file__)
 

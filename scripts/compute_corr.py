@@ -69,7 +69,7 @@ def compute_correlation(current_path, csv_file, data_folder, folder, model_score
                         'kendall': kendall_results})
 
     os.makedirs(corr_current_path, exist_ok=True)
-    res_df.to_csv('/userspace/bdt/job/bertscore/testing.csv', index=False) #corr_current_path+'/'+csv_file, index=False)
+    res_df.to_csv(corr_current_path+'/'+csv_file, index=False)
 
 
 if __name__ == '__main__': 
@@ -77,24 +77,35 @@ if __name__ == '__main__':
         data_folder = sys.argv[1] #'yandexgpt' or 'gigachat'
         model_lang = sys.argv[2] #'multilingual' or 'ru'
     else:
-        if len(sys.argv) != 3:
-            print("Ошибка. Вы должны ввести название папки с данными ('yandexgpt' или 'gigachat') и языковой тип моделей ('multilingual' или 'ru')")
-            sys.exit(1)
-
-    if data_folder == 'yandexgpt':
-        model_score_folder = 'gigachat_score'
-    elif data_folder == 'gigachat':
-        model_score_folder = 'yandex_scores'
+        print("Ошибка. Вы должны ввести название папки с данными ('yandexgpt' или 'gigachat') и языковой тип моделей ('multilingual' или 'ru')")
+        sys.exit(1)
+        
+    DATA_FOLDER2MODEL_SCORE_FOLDER = {
+        'yandexgpt': 'gigachat_score',
+        'gigachat': 'yandex_scores'
+    }
+    
+    MODEL_LANG2FOLDER_NAME = {
+        'multilingual': ['computed_bertscore', 'correlations'],
+        'ru': ['computed_ru_bert_bertscore', 'ru_correlations']
+    }
+    
+    assert data_folder in DATA_FOLDER2MODEL_SCORE_FOLDER, \
+        f'Only {DATA_FOLDER2MODEL_SCORE_FOLDER.keys()} are accepted, but {data_folder} was passed'
+    
+    assert model_lang in MODEL_LANG2FOLDER_NAME, \
+        f'Only {MODEL_LANG2FOLDER_NAME.keys()} are accepted, but {model_lang} was passed'
+    
+    model_score_folder = DATA_FOLDER2MODEL_SCORE_FOLDER[data_folder]
 
     file_path = os.path.abspath(__file__)
 
     PROJECT_PATH = os.path.dirname(os.path.dirname(file_path))
-    if model_lang == 'multilingual':
-        BERTSCORE_PATH = os.path.join(PROJECT_PATH, 'computed_bertscore')
-        CORR_PATH = os.path.join(PROJECT_PATH, 'correlations')
-    elif model_lang == 'ru':
-        BERTSCORE_PATH = os.path.join(PROJECT_PATH, 'computed_ru_bertscore')
-        CORR_PATH = os.path.join(PROJECT_PATH, 'ru_correlations')
+    folder_names = MODEL_LANG2FOLDER_NAME[model_lang]
+
+    BERTSCORE_PATH = os.path.join(PROJECT_PATH, folder_names[0])
+    CORR_PATH = os.path.join(PROJECT_PATH, folder_names[1])
+
     SCORE_PATH = os.path.join(PROJECT_PATH, model_score_folder)
 
     for folder in os.listdir(BERTSCORE_PATH+'/'+data_folder):
@@ -106,5 +117,3 @@ if __name__ == '__main__':
                     if csv_file!='test.csv':
                         print(f'FILE: {csv_file}')
                         compute_correlation(current_path, csv_file, data_folder, folder, model_score_folder, corr_current_path)
-    ...
-
