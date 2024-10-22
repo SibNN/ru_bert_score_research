@@ -40,6 +40,16 @@ def truncate_text(text: str, tokenizer: AutoTokenizer, model_name: str, max_leng
     return truncated_text, truncated
 
 
+def call_bertscore(architectures, references, predictions, tokenizer, model, layer):
+    if architectures == 'LongformerForMaskedLM':
+        bertscores = bert_score(references, predictions, (tokenizer, model), 8, layer, True) # use_global_attention = True if model - longformer
+    elif architectures == 'T5ForConditionalGeneration':
+        bertscores = bert_score(references, predictions, (tokenizer, model.encoder), 8, layer)
+    else:
+        bertscores = bert_score(references, predictions, (tokenizer, model), 8, layer)
+    return bertscores
+
+
 def manual_bertscore(df: pd.DataFrame, model_name: str, cur_path: str) -> None:
     if 'ruT5' in model_name:
         tokenizer = T5Tokenizer.from_pretrained(model_name)
@@ -54,20 +64,10 @@ def manual_bertscore(df: pd.DataFrame, model_name: str, cur_path: str) -> None:
             references = list(df['output'])
             predictions = list(df['pred'])
             try:
-                if architectures == 'LongformerForMaskedLM':
-                    bertscores = bert_score(references, predictions, (tokenizer, model), 8, layer, True) # use_global_attention = True if model - longformer
-                elif architectures == 'T5ForConditionalGeneration':
-                    bertscores = bert_score(references, predictions, (tokenizer, model.encoder), 8, layer)
-                else:
-                    bertscores = bert_score(references, predictions, (tokenizer, model), 8, layer)
+                bertscores = call_bertscore(architectures, references, predictions, tokenizer, model, layer)
             except RuntimeError:  # usually, it is out-of-memory
                 cleanup()
-                if architectures == 'LongformerForMaskedLM':
-                    bertscores = bert_score(references, predictions, (tokenizer, model), 8, layer, True) # use_global_attention = True if model - longformer
-                elif architectures == 'T5ForConditionalGeneration':
-                    bertscores = bert_score(references, predictions, (tokenizer, model.encoder), 8, layer)
-                else:
-                    bertscores = bert_score(references, predictions, (tokenizer, model), 8, layer)
+                bertscores = call_bertscore(architectures, references, predictions, tokenizer, model, layer)
             df[f"{model_name}_layer_{layer}"] = bertscores
             df.to_csv(cur_path, index=False) # save dataframe after each layer to avoid data loss
 
@@ -173,32 +173,33 @@ def compute_bertscore(df: pd.DataFrame, cur_path: str, lang_type: str) -> None:
         else:
             auto_bertscore(df, model_name, cur_path)
 
-            
-if len(sys.argv) == 3:
-    data_folder = sys.argv[1] #'yandexgpt' or 'gigachat'
-    model_lang = sys.argv[2] #'multilingual' or 'ru'
-else:
-    if len(sys.argv) != 3:
-        print("Ошибка. Вы должны ввести название папки с данными ('yandexgpt' или 'gigachat') и языковой тип моделей ('multilingual' или 'ru')")
-        sys.exit(1)
 
-file_path = os.path.abspath(__file__)
+if __name__ == '__main__':            
+    if len(sys.argv) == 3:
+        data_folder = sys.argv[1] #'yandexgpt' or 'gigachat'
+        model_lang = sys.argv[2] #'multilingual' or 'ru'
+    else:
+        if len(sys.argv) != 3:
+            print("Ошибка. Вы должны ввести название папки с данными ('yandexgpt' или 'gigachat') и языковой тип моделей ('multilingual' или 'ru')")
+            sys.exit(1)
 
-PROJECT_PATH = os.path.dirname(os.path.dirname(file_path))
-DATA_PATH = os.path.join(PROJECT_PATH, data_folder)
-if model_lang == 'multilingual':
-    BERTSCORE_PATH = os.path.join(PROJECT_PATH, 'computed_bertscore')
-elif model_lang == 'ru':
-    BERTSCORE_PATH = os.path.join(PROJECT_PATH, 'computed_ru_bertscore')
-bertscore = load("bertscore")
+    file_path = os.path.abspath(__file__)
 
-for folder in os.listdir(DATA_PATH):
-    dataset_path = DATA_PATH+'/'+folder
-    if os.path.isdir(dataset_path):
-        for csv_file in os.listdir(dataset_path):
-            if csv_file.endswith(".csv"):
-                print(f'------------------FILE: {csv_file}------------------')
-                current_path = BERTSCORE_PATH+'/'+data_folder+'/'+folder
-                os.makedirs(current_path, exist_ok=True)
-                data_df = pd.read_csv(dataset_path+'/'+csv_file)
-                compute_bertscore(data_df, current_path+'/'+csv_file, model_lang)
+    PROJECT_PATH = os.path.dirname(os.path.dirname(file_path))
+    DATA_PATH = os.path.join(PROJECT_PATH, data_folder)
+    if model_lang == 'multilingual':
+        BERTSCORE_PATH = os.path.join(PROJECT_PATH, 'computed_bertscore')
+    elif model_lang == 'ru':
+        BERTSCORE_PATH = os.path.join(PROJECT_PATH, 'computed_ru_bertscore')
+    bertscore = load("bertscore")
+
+    for folder in os.listdir(DATA_PATH):
+        dataset_path = DATA_PATH+'/'+folder
+        if os.path.isdir(dataset_path):
+            for csv_file in os.listdir(dataset_path):
+                if csv_file.endswith(".csv"):
+                    print(f'------------------FILE: {csv_file}------------------')
+                    current_path = BERTSCORE_PATH+'/'+data_folder+'/'+folder
+                    os.makedirs(current_path, exist_ok=True)
+                    data_df = pd.read_csv(dataset_path+'/'+csv_file)
+                    compute_bertscore(data_df, current_path+'/'+csv_file, model_lang)

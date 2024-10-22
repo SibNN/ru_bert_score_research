@@ -9,6 +9,23 @@ MAX_TEXT_LEN: int = 16_000
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+
+def process_tokenized_data(tokenized, input_ids, attention_mask, useful_token_indices):
+    input_ids.append(tokenized.input_ids)
+    attention_mask.append(tokenized.attention_mask)
+    for sample_idx in range(tokenized.special_tokens_mask.shape[0]):
+        useful_token_indices_of_cur_text = []
+        for time_idx in range(tokenized.special_tokens_mask.shape[1]):
+            if time_idx >= tokenized.length[sample_idx]:
+                break
+            mask_val = int(tokenized.special_tokens_mask[sample_idx, time_idx])
+            if mask_val not in {0, 1}:
+                raise RuntimeError(f'The mask value = {mask_val} is wrong!')
+            if mask_val == 0:
+                useful_token_indices_of_cur_text.append(time_idx)
+        useful_token_indices.append(useful_token_indices_of_cur_text)
+
+
 def calculate_token_embeddings(texts: List[str], embedder: Tuple[torch.nn.Module, torch.nn.Module],
                                batch_size: Optional[int] = None, hidden_state_idx: int = -1, 
                                use_global_attention: bool = False) -> List[Union[np.ndarray, None]]:
@@ -18,26 +35,7 @@ def calculate_token_embeddings(texts: List[str], embedder: Tuple[torch.nn.Module
 
     embedder[1].to(device)
 
-    if batch_size is None:
-        tokenized = embedder[0].batch_encode_plus(texts, max_length=MAX_TEXT_LEN, return_length=True,
-                                                  truncation=True, padding=True, return_special_tokens_mask=True,
-                                                  return_tensors='pt')
-        input_ids.append(tokenized.input_ids)
-        attention_mask.append(tokenized.attention_mask)
-        for sample_idx in range(tokenized.special_tokens_mask.shape[0]):
-            useful_token_indices_of_cur_text = []
-            for time_idx in range(tokenized.special_tokens_mask.shape[1]):
-                if time_idx >= tokenized.length[sample_idx]:
-                    break
-                mask_val = int(tokenized.special_tokens_mask[sample_idx, time_idx])
-                if mask_val not in {0, 1}:
-                    raise RuntimeError(f'The mask value = {mask_val} is wrong!')
-                if mask_val == 0:
-                    useful_token_indices_of_cur_text.append(time_idx)
-            useful_token_indices.append(useful_token_indices_of_cur_text)
-            del useful_token_indices_of_cur_text
-        del tokenized
-    else:
+    if batch_size is not None:
         if batch_size < 1:
             raise ValueError(f'The minibatch size = {batch_size} is wrong!')
         n_batches = math.ceil(len(texts) / batch_size)
@@ -47,21 +45,13 @@ def calculate_token_embeddings(texts: List[str], embedder: Tuple[torch.nn.Module
             tokenized = embedder[0].batch_encode_plus(texts[batch_start:batch_end], max_length=MAX_TEXT_LEN,
                                                       return_length=True, truncation=True, padding=True,
                                                       return_special_tokens_mask=True, return_tensors='pt')
-            input_ids.append(tokenized.input_ids)
-            attention_mask.append(tokenized.attention_mask)
-            for sample_idx in range(tokenized.special_tokens_mask.shape[0]):
-                useful_token_indices_of_cur_text = []
-                for time_idx in range(tokenized.special_tokens_mask.shape[1]):
-                    if time_idx >= tokenized.length[sample_idx]:
-                        break
-                    mask_val = int(tokenized.special_tokens_mask[sample_idx, time_idx])
-                    if mask_val not in {0, 1}:
-                        raise RuntimeError(f'The mask value = {mask_val} is wrong!')
-                    if mask_val == 0:
-                        useful_token_indices_of_cur_text.append(time_idx)
-                useful_token_indices.append(useful_token_indices_of_cur_text)
-                del useful_token_indices_of_cur_text
-            del tokenized
+            process_tokenized_data(tokenized, input_ids, attention_mask, useful_token_indices)
+    else:
+        tokenized = embedder[0].batch_encode_plus(texts, max_length=MAX_TEXT_LEN, return_length=True,
+                                                  truncation=True, padding=True, return_special_tokens_mask=True,
+                                                  return_tensors='pt')
+        process_tokenized_data(tokenized, input_ids, attention_mask, useful_token_indices)
+   
     text_idx = 0
     embeddings = []
     for batched_input_ids, batched_attention_mask in zip(input_ids, attention_mask):
@@ -96,6 +86,7 @@ def calculate_token_embeddings(texts: List[str], embedder: Tuple[torch.nn.Module
             text_idx += 1
 
     return embeddings
+
 
 def bert_score(references: List[str], predictions: List[str],
                evaluator: Tuple[LongformerTokenizerFast, LongformerForMaskedLM],
