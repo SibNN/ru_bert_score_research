@@ -1,7 +1,8 @@
-import torch
-import numpy as np
 import math
 from typing import List, Tuple, Optional, Union
+
+import numpy as np
+import torch
 from sklearn.metrics.pairwise import cosine_similarity
 from transformers import LongformerForMaskedLM, LongformerTokenizerFast
 
