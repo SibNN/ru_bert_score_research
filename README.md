@@ -87,4 +87,4 @@
 |kazzand/ru-longformer-base-4096|148М|6|0.327|
 
 ## Подробнее:
-Для более подробного изучения нашего исследования вы можете ознакомиться с [презентацией](https://docs.google.com/presentation/d/1Udsd5PxptVR3QSrxIWCnF2fuExILbqxy5gVTGeR6id0/edit?usp=sharing).
+Для более подробного изучения нашего исследования вы можете ознакомиться с [презентацией](./RuBERT-Score.pdf).

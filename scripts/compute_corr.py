@@ -60,9 +60,8 @@ def compute_correlation(current_path, csv_file, data_folder, folder, model_score
             model_score_list = merged_df[f'avg_{model_score_folder}'].values
             pearson_results.append(stats.pearsonr(bertscore_list, model_score_list).statistic)
             kendall_results.append(stats.kendalltau(bertscore_list, model_score_list).statistic)
-        except ValueError:
-            print(bertscore_list)
-            print(model_score_list)
+        except ValueError as e:
+            print(e)
 
     res_df = pd.DataFrame({'model_layer': bertscore_columns,
                         'pearson': pearson_results,
