@@ -16,7 +16,7 @@ class YandexScorer:
         self._url = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
         self._headers = {
             "Content-Type": "application/json",
-            "Authorization": "Api-Key AQVN1mlx5gNXrfw6a6tOZ9Oj2ZtV3n7IvGSPT5R4"
+            "Authorization": "Api-Key PASTE HERE"
         }
 
         self._scores_dir_path = YANDEX_SCORES / dataset_name

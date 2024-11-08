@@ -19,7 +19,7 @@ class GigachatGenerator:
         dataset_name: название датасета, на котором нужно запустить модель.
     """
 
-    CREDS = 'M2Y4MGIwZmItOGY0NS00YjE2LTgzZTItZjE2OWE0YzJiMWMwOmM4MTlhNmUxLTFhNWQtNDQ0Ny1iYzRmLTZkOGIzOTQwNjIzYQ=='
+    CREDS = 'PASTE HERE'
 
     def __init__(self, dataset_name: str) -> None:
         self._dataset_name = dataset_name

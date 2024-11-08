@@ -1,7 +1,6 @@
 import csv
 import json
 import time
-from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
 from typing import Optional, List
@@ -20,7 +19,7 @@ class YandexGPTGenerator:
         self._url = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
         self._headers = {
             "Content-Type": "application/json",
-            "Authorization": "Api-Key AQVN1mlx5gNXrfw6a6tOZ9Oj2ZtV3n7IvGSPT5R4"
+            "Authorization": "Api-Key PASTE HERE"
         }
 
         self._dataset_path = Path(dataset_path)
@@ -94,16 +93,3 @@ if __name__ == '__main__':
     dataset_path = '/Users/elena/Documents/summarization/summarization-dataset/dataset/'
     gen = YandexGPTGenerator(dataset_path)
     gen.run()
-
-
-
-# идентификатор ключа: ajen56jp5g3k201agrpe
-# секретный ключ: AQVN1ymnksB0EAKoby7H1X07zvYXBiLeHbtrtGcV
-
-# sibnn:
-
-# Идентификатор ключа:
-# ajemd5ouc0qnlnu3kqtb
-# Ваш секретный ключ:
-# AQVN1mlx5gNXrfw6a6tOZ9Oj2ZtV3n7IvGSPT5R4
-
