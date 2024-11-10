@@ -16,7 +16,7 @@ class YandexScorer:
         self._url = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
         self._headers = {
             "Content-Type": "application/json",
-            "Authorization": "Api-Key PASTE HERE"
+            "Authorization": "Api-Key <ВАШ_API_КЛЮЧ>"
         }
 
         self._scores_dir_path = YANDEX_SCORES / dataset_name
@@ -89,7 +89,7 @@ class YandexScorer:
         ]
 
         prompt = {
-            "modelUri": "gpt://b1gk85hjrhd3k9deoh0s/yandexgpt",
+            "modelUri": "gpt://<ВАШ_ИДЕНТИФИКАТОР_КАТАЛОГА>/yandexgpt",
             "completionOptions": {
                 "stream": False,
                 "temperature": 0.6,
@@ -131,7 +131,7 @@ class YandexScorer:
         ]
 
         prompt = {
-            "modelUri": "gpt://b1gk85hjrhd3k9deoh0s/yandexgpt",
+            "modelUri": "gpt://<ВАШ_ИДЕНТИФИКАТОР_КАТАЛОГА>/yandexgpt",
             "completionOptions": {
                 "stream": False,
                 "temperature": 0.6,
@@ -172,7 +172,7 @@ class YandexScorer:
         ]
 
         prompt = {
-            "modelUri": "gpt://b1gk85hjrhd3k9deoh0s/yandexgpt",
+            "modelUri": "gpt://<ВАШ_ИДЕНТИФИКАТОР_КАТАЛОГА>/yandexgpt",
             "completionOptions": {
                 "stream": False,
                 "temperature": 0.6,
