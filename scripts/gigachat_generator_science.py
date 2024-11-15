@@ -2,8 +2,12 @@ from pathlib import Path
 
 from gigachat import GigaChat
 from tqdm import tqdm
+import yaml
 
-from scripts.paths import GIGACHAT_PATH, DATA_PATH
+from scripts.paths import GIGACHAT_PATH, DATA_PATH, CONFIG_PATH
+
+
+config = yaml.safe_load(open(CONFIG_PATH))
 
 
 class GigachatGenerator:
@@ -17,7 +21,7 @@ class GigachatGenerator:
         dataset_name: название датасета, на котором нужно запустить модель.
     """
 
-    CREDS = 'PASTE HERE'
+    CREDS = config['credentials']
 
     def __init__(self, dataset_path: str) -> None:
 
@@ -69,6 +73,6 @@ class GigachatGenerator:
 
 
 if __name__ == '__main__':
-    dataset_path = '/Users/elena/Documents/summarization/summarization-dataset/dataset/'
+    dataset_path = config['science_dataset_path']
     gigachat = GigachatGenerator(dataset_path)
     gigachat.run()

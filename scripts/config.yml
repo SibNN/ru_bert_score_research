@@ -1,0 +1,8 @@
+#YandexGPT
+api_key: <ВАШ_API_КЛЮЧ>
+catalog_id: <ВАШ_ИДЕНТИФИКАТОР_КАТАЛОГА>
+#Gigachat
+token: <ВАШ_ТОКЕН>'
+credentials: <ВАШ_КЛЮЧ_АВТОРИЗАЦИИ>
+scope: !!str GIGACHAT_API_PERS
+science_dataset_path: !!str <ПУТЬ_ДО_ДАННЫХ_ДАТАСЕТА_science_summarization_dataset>

@@ -76,8 +76,7 @@ if __name__ == '__main__':
         data_folder = sys.argv[1] #'yandexgpt' or 'gigachat'
         model_lang = sys.argv[2] #'multilingual' or 'ru'
     else:
-        print("Ошибка. Вы должны ввести название папки с данными ('yandexgpt' или 'gigachat') и языковой тип моделей ('multilingual' или 'ru')")
-        sys.exit(1)
+        raise ValueError("Неправильное количество аргументов. Ожидалось 2 аргумента: название папки с данными ('yandexgpt' или 'gigachat') и тип модели ('multilingual' или 'ru').")
         
     DATA_FOLDER2MODEL_SCORE_FOLDER = {
         'yandexgpt': 'gigachat_score',

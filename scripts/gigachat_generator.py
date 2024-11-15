@@ -1,11 +1,16 @@
+import sys
 import csv
 from pathlib import Path
 from typing import Optional, List
 
 from gigachat import GigaChat
 from tqdm import tqdm
+import yaml
 
-from scripts.paths import GIGACHAT_PATH, DATA_PATH
+from scripts.paths import GIGACHAT_PATH, DATA_PATH, CONFIG_PATH
+
+
+config = yaml.safe_load(open(CONFIG_PATH))
 
 
 class GigachatGenerator:
@@ -19,7 +24,7 @@ class GigachatGenerator:
         dataset_name: название датасета, на котором нужно запустить модель.
     """
 
-    CREDS = 'PASTE HERE'
+    CREDS = config['credentials']
 
     def __init__(self, dataset_name: str) -> None:
         self._dataset_name = dataset_name
@@ -79,5 +84,10 @@ class GigachatGenerator:
 
 
 if __name__ == '__main__':
-    gigachat = GigachatGenerator('reviews_russian')
+    if len(sys.argv) == 2:
+        dataset_name = sys.argv[1] #'dialogsum_ru', 'reviews_russian','ru_simple_sent_eval', 'telegram-financial-sentiment-summarization').
+    else:
+        raise ValueError("Неправильное количество аргументов. Ожидался 1 аргумент: название датасета ('dialogsum_ru', 'reviews_russian','ru_simple_sent_eval', 'telegram-financial-sentiment-summarization').")
+
+    gigachat = GigachatGenerator(dataset_name)
     gigachat.run()

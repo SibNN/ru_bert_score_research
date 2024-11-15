@@ -7,8 +7,12 @@ from typing import Optional, List
 
 import requests
 from tqdm import tqdm
+import yaml
 
-from scripts.paths import YANDEX_PROMPT_PATH
+from scripts.paths import YANDEX_PROMPT_PATH, CONFIG_PATH
+
+
+config = yaml.safe_load(open(CONFIG_PATH))
 
 
 class YandexGPTGenerator:
@@ -19,7 +23,7 @@ class YandexGPTGenerator:
         self._url = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
         self._headers = {
             "Content-Type": "application/json",
-            "Authorization": "Api-Key PASTE HERE"
+            "Authorization": f"Api-Key {config['api_key']}"
         }
 
         self._dataset_path = Path(dataset_path)
@@ -77,7 +81,7 @@ class YandexGPTGenerator:
                 break
 
         prompt = {
-            "modelUri": "gpt://b1gk85hjrhd3k9deoh0s/yandexgpt",
+            "modelUri": f"gpt://{config['catalog_id']}/yandexgpt",
             "completionOptions": {
                 "stream": False,
                 "temperature": 0.6,
@@ -90,6 +94,6 @@ class YandexGPTGenerator:
 
 
 if __name__ == '__main__':
-    dataset_path = '/Users/elena/Documents/summarization/summarization-dataset/dataset/'
+    dataset_path = config['science_dataset_path']
     gen = YandexGPTGenerator(dataset_path)
     gen.run()

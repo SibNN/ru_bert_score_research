@@ -1,3 +1,4 @@
+import sys
 import csv
 import json
 import time
@@ -7,8 +8,12 @@ from typing import Optional, List
 
 import requests
 from tqdm import tqdm
+import yaml
 
-from scripts.paths import YANDEX_PROMPT_PATH, DATA_PATH
+from scripts.paths import YANDEX_PROMPT_PATH, DATA_PATH, CONFIG_PATH
+
+
+config = yaml.safe_load(open(CONFIG_PATH))
 
 
 class YandexGPTGenerator:
@@ -19,7 +24,7 @@ class YandexGPTGenerator:
         self._url = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
         self._headers = {
             "Content-Type": "application/json",
-            "Authorization": "Api-Key PASTE HERE"
+            "Authorization": f"Api-Key {config['api_key']}"
         }
 
         self._dataset_name = dataset_name
@@ -82,7 +87,7 @@ class YandexGPTGenerator:
                 break
 
         prompt = {
-            "modelUri": "gpt://b1gk85hjrhd3k9deoh0s/yandexgpt",
+            "modelUri": f"gpt://{config['catalog_id']}/yandexgpt",
             "completionOptions": {
                 "stream": False,
                 "temperature": 0.6,
@@ -95,5 +100,10 @@ class YandexGPTGenerator:
 
 
 if __name__ == '__main__':
-    gen = YandexGPTGenerator('ru_simple_sent_eval')
+    if len(sys.argv) == 2:
+        dataset_name = sys.argv[1] #'dialogsum_ru', 'reviews_russian','ru_simple_sent_eval', 'telegram-financial-sentiment-summarization'
+    else:
+        raise ValueError("Неправильное количество аргументов. Ожидался 1 аргумент: название датасета ('dialogsum_ru', 'reviews_russian','ru_simple_sent_eval', 'telegram-financial-sentiment-summarization').")
+
+    gen = YandexGPTGenerator(dataset_name)
     gen.run()
