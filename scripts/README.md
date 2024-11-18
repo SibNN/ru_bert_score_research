@@ -1,4 +1,6 @@
 # Описание файлов
+## Перед началом
+Введите свои персональные данные в config.yml для использования моделей Gigachat и YandexGPT. Также в этом файле находятся промпты для каждого из датасетов.
 ## Генерация данных
 ### Gigachat
 Запустите `gigachat_generator.py` для генерации ответов с помощью модели Gigachat со следующим параметром:
@@ -11,7 +13,6 @@ python scripts/gigachat_generator.py DATASET_NAME
 ```sh
 python scripts/gigachat_generator_sсience.py
 ```
-В директории `/gigachat/DATASET_NAME/` нужно создать файл `prompt.txt` с соответствующим промптом для данной задачи.
 
 ### YandexGPT
 Запустите `yandex_gpt_generator.py` для генерации ответов с помощью модели YandexGPT со следующим параметром:
@@ -24,7 +25,6 @@ python scripts/yandex_gpt_generator.py DATASET_NAME
 ```sh
 python scripts/yandex_gpt_generator_science.py
 ```
-В директории `/yandexgpt/DATASET_NAME/` нужно создать файл `messages.json` с соответствующим промптом для данной задачи.
 ### Фильтрация предсказаний от YandexGPT
 Запустите `filter_yandexgpt.py` для очистки от некорректных предсказаний:
 ```sh

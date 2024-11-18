@@ -29,9 +29,7 @@ class YandexGPTGenerator:
         self._dataset_path = Path(dataset_path)
         self._model_artifacts_path = YANDEX_PROMPT_PATH / 'science_summarization_dataset'
 
-        prompt_path = self._model_artifacts_path / 'messages.json'
-        with open(prompt_path, 'r') as f:
-            self._messages = json.load(f)
+        self._messages = config['yandexgpt']['science_summarization_dataset']
 
     def run(self, fnames_to_run: Optional[List[str]] = None) -> None:
         with open(self._model_artifacts_path / 'preds.csv', 'w') as fout:

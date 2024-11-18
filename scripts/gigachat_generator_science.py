@@ -28,9 +28,7 @@ class GigachatGenerator:
         self._dataset_path = DATA_PATH / dataset_path
         self._model_artifacts_path = GIGACHAT_PATH / 'science_summarization_dataset'
 
-        prompt_path = self._model_artifacts_path / 'prompt.txt'
-        with open(prompt_path, 'r') as f:
-            self._prompt = f.read().strip()
+        self._prompt = config['gigachat']['science_summarization_dataset'].strip()
 
     def run(self) -> None:
         """

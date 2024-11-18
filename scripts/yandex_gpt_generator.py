@@ -32,9 +32,7 @@ class YandexGPTGenerator:
         self._dataset_path = DATA_PATH / dataset_name
         self._model_artifacts_path = YANDEX_PROMPT_PATH / dataset_name
 
-        prompt_path = self._model_artifacts_path / 'messages.json'
-        with open(prompt_path, 'r') as f:
-            self._messages = json.load(f)
+        self._messages = config['yandexgpt'][dataset_name]
 
     def run(self, fnames_to_run: Optional[List[str]] = None) -> None:
         for fpath in self._dataset_path.iterdir():
