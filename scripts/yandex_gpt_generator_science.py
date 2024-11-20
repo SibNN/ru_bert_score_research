@@ -1,15 +1,18 @@
 import csv
 import json
 import time
-from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
 from typing import Optional, List
 
 import requests
 from tqdm import tqdm
+import yaml
 
-from scripts.paths import YANDEX_PROMPT_PATH
+from scripts.paths import YANDEX_PROMPT_PATH, CONFIG_PATH
+
+
+config = yaml.safe_load(open(CONFIG_PATH))
 
 
 class YandexGPTGenerator:
@@ -20,15 +23,13 @@ class YandexGPTGenerator:
         self._url = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
         self._headers = {
             "Content-Type": "application/json",
-            "Authorization": "Api-Key AQVN1mlx5gNXrfw6a6tOZ9Oj2ZtV3n7IvGSPT5R4"
+            "Authorization": f"Api-Key {config['api_key']}"
         }
 
         self._dataset_path = Path(dataset_path)
         self._model_artifacts_path = YANDEX_PROMPT_PATH / 'science_summarization_dataset'
 
-        prompt_path = self._model_artifacts_path / 'messages.json'
-        with open(prompt_path, 'r') as f:
-            self._messages = json.load(f)
+        self._messages = config['yandexgpt']['science_summarization_dataset']
 
     def run(self, fnames_to_run: Optional[List[str]] = None) -> None:
         with open(self._model_artifacts_path / 'preds.csv', 'w') as fout:
@@ -78,7 +79,7 @@ class YandexGPTGenerator:
                 break
 
         prompt = {
-            "modelUri": "gpt://b1gk85hjrhd3k9deoh0s/yandexgpt",
+            "modelUri": f"gpt://{config['catalog_id']}/yandexgpt",
             "completionOptions": {
                 "stream": False,
                 "temperature": 0.6,
@@ -91,19 +92,6 @@ class YandexGPTGenerator:
 
 
 if __name__ == '__main__':
-    dataset_path = '/Users/elena/Documents/summarization/summarization-dataset/dataset/'
+    dataset_path = config['science_dataset_path']
     gen = YandexGPTGenerator(dataset_path)
     gen.run()
-
-
-
-# идентификатор ключа: ajen56jp5g3k201agrpe
-# секретный ключ: AQVN1ymnksB0EAKoby7H1X07zvYXBiLeHbtrtGcV
-
-# sibnn:
-
-# Идентификатор ключа:
-# ajemd5ouc0qnlnu3kqtb
-# Ваш секретный ключ:
-# AQVN1mlx5gNXrfw6a6tOZ9Oj2ZtV3n7IvGSPT5R4
-

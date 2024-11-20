@@ -1,3 +1,4 @@
+import sys
 import csv
 from pathlib import Path
 from typing import Dict
@@ -6,7 +7,7 @@ from bleu import list_bleu
 from rouge_metric import PyRouge
 from tqdm import tqdm
 
-from scripts.paths import GIGACHAT_SCORE
+from scripts.paths import GIGACHAT_SCORE, YANDEX_SCORES
 
 
 class StatMetricsComputer:
@@ -60,5 +61,13 @@ class StatMetricsComputer:
 
 
 if __name__ == '__main__':
-    metrics_computer = StatMetricsComputer(GIGACHAT_SCORE)
+    if len(sys.argv) == 2:
+        score_model = sys.argv[1] #'yandexgpt' или 'gigachat'
+    else:
+        raise ValueError("Неправильное количество аргументов. Ожидался 1 аргумент: название модели, от которой были получены оценки ('yandexgpt' или 'gigachat').")
+    if score_model=='yandexgpt':
+        data_folder_name = YANDEX_SCORES
+    elif score_model=='gigachat':
+        data_folder_name = GIGACHAT_SCORE
+    metrics_computer = StatMetricsComputer(data_folder_name)
     metrics_computer.run()
