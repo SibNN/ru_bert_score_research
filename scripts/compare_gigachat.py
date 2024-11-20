@@ -4,8 +4,12 @@ import pandas as pd
 from tqdm import tqdm
 from langchain.schema import HumanMessage, SystemMessage
 from langchain_community.chat_models import GigaChat
+import yaml
 
-import config
+from scripts.paths import CONFIG_PATH
+
+
+config = yaml.safe_load(open(CONFIG_PATH))
 
 
 def get_score(prompt: str) -> int:
@@ -76,7 +80,7 @@ PROJECT_PATH = os.path.dirname(os.path.dirname(file_path))
 DATA_PATH = os.path.join(PROJECT_PATH, data_folder)
 SCORE_PATH = os.path.join(PROJECT_PATH, 'gigachat_score')
 
-chat = GigaChat(credentials=config.credentials, scope=config.scope, verify_ssl_certs=False)
+chat = GigaChat(credentials=config['credentials'], scope=config['scope'], verify_ssl_certs=False)
 
 for folder in os.listdir(DATA_PATH):
     data_path = DATA_PATH+'/'+folder
