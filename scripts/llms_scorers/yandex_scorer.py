@@ -1,28 +1,32 @@
+import sys
 import csv
 import json
 import time
 
 import requests
 from tqdm import tqdm
+import yaml
 
-from scripts.paths import YANDEX_SCORES, GIGACHAT_PATH
+from scripts.paths import YANDEX_SCORES, GIGACHAT_PATH, CONFIG_PATH
+
+
+config = yaml.safe_load(open(CONFIG_PATH))
 
 
 class YandexScorer:
 
-    def __init__(self, dataset_name: str, score_field: str) -> None:
+    def __init__(self, dataset_name: str) -> None:
         self._dataset_dir_path = GIGACHAT_PATH / dataset_name
 
         self._url = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
         self._headers = {
             "Content-Type": "application/json",
-            "Authorization": "Api-Key AQVN1mlx5gNXrfw6a6tOZ9Oj2ZtV3n7IvGSPT5R4"
+            "Authorization": f"Api-Key {config['api_key']}"
         }
 
         self._scores_dir_path = YANDEX_SCORES / dataset_name
         self._scores_dir_path.mkdir(parents=True, exist_ok=True)
 
-        self._score_field = score_field
         self._dataset_name = dataset_name
 
     def run(self):
@@ -31,16 +35,16 @@ class YandexScorer:
                 continue
 
             all_samples = []
+            score_fields = ['score_1', 'score_2', 'score_3']
 
             # Считаем все данные из файла с уже подготовленными первыми n оценками
             with open(fpath, 'r') as fin:
                 reader = csv.DictReader(fin)
-                fieldnames = list(reader.fieldnames)
+                fieldnames = list(reader.fieldnames) + score_fields
                 for row in reader:
                     all_samples.append(row)
 
             with open(fpath, 'w') as fout:
-                fieldnames.append(self._score_field)
                 writer = csv.DictWriter(fout, fieldnames=fieldnames)
                 writer.writeheader()
 
@@ -48,26 +52,31 @@ class YandexScorer:
 
                     input_text = row['output']
                     pred_text = row['pred']
-                    prompt = self._get_prompt_3(input_text, pred_text)
+                    for score_field in score_fields:
+                        if score_field=='score_1':
+                            prompt = self._get_prompt_1(input_text, pred_text)
+                        elif score_field=='score_2':
+                            prompt = self._get_prompt_2(input_text, pred_text)
+                        elif score_field=='score_3':
+                            prompt = self._get_prompt_3(input_text, pred_text)
+                        try:
+                            response = requests.post(self._url, headers=self._headers, json=prompt)
+                            result = json.loads(response.text)
+                        except:
+                            print('TimeoutError')
+                            result = dict()
 
-                    try:
-                        response = requests.post(self._url, headers=self._headers, json=prompt)
-                        result = json.loads(response.text)
-                    except:
-                        print('TimeoutError')
-                        result = dict()
+                        text = ''
 
-                    text = ''
+                        try:
+                            for m in result['result']['alternatives']:
+                                if m['status'] == 'ALTERNATIVE_STATUS_FINAL':
+                                    text = m['message']['text']
+                        except:
+                            text = 'FAILED'
+                            print(result)
 
-                    try:
-                        for m in result['result']['alternatives']:
-                            if m['status'] == 'ALTERNATIVE_STATUS_FINAL':
-                                text = m['message']['text']
-                    except:
-                        text = 'FAILED'
-                        print(result)
-
-                    row[self._score_field] = text
+                        row[score_field] = text
                     writer.writerow(row)
                     time.sleep(1)
 
@@ -89,7 +98,7 @@ class YandexScorer:
         ]
 
         prompt = {
-            "modelUri": "gpt://b1gk85hjrhd3k9deoh0s/yandexgpt",
+            "modelUri": f"gpt://{config['catalog_id']}/yandexgpt",
             "completionOptions": {
                 "stream": False,
                 "temperature": 0.6,
@@ -131,7 +140,7 @@ class YandexScorer:
         ]
 
         prompt = {
-            "modelUri": "gpt://b1gk85hjrhd3k9deoh0s/yandexgpt",
+            "modelUri": f"gpt://{config['catalog_id']}/yandexgpt",
             "completionOptions": {
                 "stream": False,
                 "temperature": 0.6,
@@ -172,7 +181,7 @@ class YandexScorer:
         ]
 
         prompt = {
-            "modelUri": "gpt://b1gk85hjrhd3k9deoh0s/yandexgpt",
+            "modelUri": f"gpt://{config['catalog_id']}/yandexgpt",
             "completionOptions": {
                 "stream": False,
                 "temperature": 0.6,
@@ -185,5 +194,10 @@ class YandexScorer:
 
 
 if __name__ == '__main__':
-    yandex_scorer = YandexScorer(dataset_name='telegram-financial-sentiment-summarization', score_field='score_3')
+    if len(sys.argv) == 2:
+        dataset_name = sys.argv[1] #'dialogsum_ru', 'reviews_russian','ru_simple_sent_eval', 'science_summarization_dataset', 'telegram-financial-sentiment-summarization'
+    else:
+        raise ValueError("Неправильное количество аргументов. Ожидался 1 аргумент: название датасета ('dialogsum_ru', 'reviews_russian','ru_simple_sent_eval', 'science_summarization_dataset', 'telegram-financial-sentiment-summarization').")
+
+    yandex_scorer = YandexScorer(dataset_name)
     yandex_scorer.run()

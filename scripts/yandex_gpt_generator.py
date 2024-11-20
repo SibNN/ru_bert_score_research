@@ -1,3 +1,4 @@
+import sys
 import csv
 import json
 import time
@@ -7,8 +8,12 @@ from typing import Optional, List
 
 import requests
 from tqdm import tqdm
+import yaml
 
-from scripts.paths import YANDEX_PROMPT_PATH, DATA_PATH
+from scripts.paths import YANDEX_PROMPT_PATH, DATA_PATH, CONFIG_PATH
+
+
+config = yaml.safe_load(open(CONFIG_PATH))
 
 
 class YandexGPTGenerator:
@@ -19,7 +24,7 @@ class YandexGPTGenerator:
         self._url = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
         self._headers = {
             "Content-Type": "application/json",
-            "Authorization": "Api-Key AQVN1mlx5gNXrfw6a6tOZ9Oj2ZtV3n7IvGSPT5R4"
+            "Authorization": f"Api-Key {config['api_key']}"
         }
 
         self._dataset_name = dataset_name
@@ -27,9 +32,7 @@ class YandexGPTGenerator:
         self._dataset_path = DATA_PATH / dataset_name
         self._model_artifacts_path = YANDEX_PROMPT_PATH / dataset_name
 
-        prompt_path = self._model_artifacts_path / 'messages.json'
-        with open(prompt_path, 'r') as f:
-            self._messages = json.load(f)
+        self._messages = config['yandexgpt'][dataset_name]
 
     def run(self, fnames_to_run: Optional[List[str]] = None) -> None:
         for fpath in self._dataset_path.iterdir():
@@ -82,7 +85,7 @@ class YandexGPTGenerator:
                 break
 
         prompt = {
-            "modelUri": "gpt://b1gk85hjrhd3k9deoh0s/yandexgpt",
+            "modelUri": f"gpt://{config['catalog_id']}/yandexgpt",
             "completionOptions": {
                 "stream": False,
                 "temperature": 0.6,
@@ -95,18 +98,10 @@ class YandexGPTGenerator:
 
 
 if __name__ == '__main__':
-    gen = YandexGPTGenerator('ru_simple_sent_eval')
+    if len(sys.argv) == 2:
+        dataset_name = sys.argv[1] #'dialogsum_ru', 'reviews_russian','ru_simple_sent_eval', 'telegram-financial-sentiment-summarization'
+    else:
+        raise ValueError("Неправильное количество аргументов. Ожидался 1 аргумент: название датасета ('dialogsum_ru', 'reviews_russian','ru_simple_sent_eval', 'telegram-financial-sentiment-summarization').")
+
+    gen = YandexGPTGenerator(dataset_name)
     gen.run()
-
-
-
-# идентификатор ключа: ajen56jp5g3k201agrpe
-# секретный ключ: AQVN1ymnksB0EAKoby7H1X07zvYXBiLeHbtrtGcV
-
-# sibnn:
-
-# Идентификатор ключа:
-# ajemd5ouc0qnlnu3kqtb
-# Ваш секретный ключ:
-# AQVN1mlx5gNXrfw6a6tOZ9Oj2ZtV3n7IvGSPT5R4
-
